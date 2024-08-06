@@ -1,3 +1,2 @@
 echo cleanlib
 rm -rf QDUtilLib*
-rm -rf EVRT_dnSVM*

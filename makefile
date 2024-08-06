@@ -195,9 +195,12 @@ ifeq ($(FFC),ifort)
 
 
   FLIB    = $(EXTLib)
-  ifeq ($(LLAPACK),1)
-    #FLIB += -mkl -lpthread
-    FLIB += -qmkl -lpthread
+  ifneq ($(LLAPACK),1)
+    ifeq ($(FFC),ifort)
+      FLIB += -mkl -lpthread
+    else # ifx
+      FLIB += -qmkl -lpthread
+    endif
   else
     FLIB += -lpthread
   endif
