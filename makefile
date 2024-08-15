@@ -162,7 +162,7 @@ endif
 #=================================================================================
 # ifort compillation v17 v18 with mkl
 #=================================================================================
-ifeq ($(FFC),ifort)
+ifeq ($(FFC),$(filter $(FFC),ifort ifx))
 
   # opt management
   ifeq ($(OOPT),1)
@@ -179,8 +179,12 @@ ifeq ($(FFC),ifort)
 
   # omp management
   ifeq ($(OOMP),1)
-    FFLAGS   += -qopenmp
-    CPPSHELL += -Drun_openMP=1
+    ifeq ($(FFC),ifort)
+      FFLAGS += -qopenmp -parallel
+      CPPSHELL += -Drun_openMP=1
+    else # ifx
+      FFLAGS += -qopenmp
+    endif
   endif
   FFLAGS0 := $(FFLAGS)
 
@@ -195,7 +199,7 @@ ifeq ($(FFC),ifort)
 
 
   FLIB    = $(EXTLib)
-  ifneq ($(LLAPACK),1)
+  ifeq ($(LLAPACK),1)
     ifeq ($(FFC),ifort)
       FLIB += -mkl -lpthread
     else # ifx
