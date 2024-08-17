@@ -53,10 +53,7 @@ endif
 OS :=$(shell uname)
 
 # about EVRT, path, versions ...:
-LOC_path:= $(shell pwd)
-#TNUM_ver:=$(shell awk '/Tnum/ {print $$3}' $(LOC_path)/version-EVR-T)
-#TANA_ver:=$(shell awk '/Tana/ {print $$3}' $(LOC_path)/version-EVR-T)
-#EVR_ver:=$(shell awk '/EVR/ {print $$3}' $(LOC_path)/version-EVR-T)
+MAIN_path:= $(shell pwd)
 
 # Extension for the object directory and the library
 ifeq ($(FFC),mpifort)
@@ -76,200 +73,33 @@ MOD_DIR=$(OBJ_DIR)
 # library name
 LIBA=libnDindex$(extlibwi_obj).a
 #=================================================================================
-# cpp preprocessing
-CPPSHELL = -D__COMPILE_DATE="\"$(shell date +"%a %e %b %Y - %H:%M:%S")\"" \
-           -D__COMPILE_HOST="\"$(shell hostname -s)\"" \
-           -D__COMPILER="'$(FFC)'" \
-           -D__COMPILER_VER="'$(FC_VER)'" \
-           -D__COMPILER_OPT="'$(FFLAGS0)'" \
-           -D__EVRTPATH="'$(LOC_path)'"
-#===============================================================================
 #
 #===============================================================================
 # external lib (QDUtil, AD_dnSVM ...)
 ifeq ($(ExtLibDIR),)
-  ExtLibDIR := $(LOC_path)/Ext_Lib
+  ExtLibDIR := $(MAIN_path)/Ext_Lib
 endif
 
 QD_DIR    = $(ExtLibDIR)/QDUtilLib
 QDMOD_DIR = $(QD_DIR)/OBJ/obj$(extlib_obj)
 QDLIBA    = $(QD_DIR)/libQD$(extlib_obj).a
 
-EXTLib     = $(EVRTdnSVMLIBA) $(QDLIBA)
-FLIB0      = libQD$(extlib_obj).a
-
+EXTLib     = $(QDLIBA)
+EXTMod     = -I$(QDMOD_DIR)
 #===============================================================================
 #
-#===============================================================================
-# gfortran (osx and linux)
-#ifeq ($(F90),gfortran)
-#===============================================================================
-ifeq ($(FFC),gfortran)
-
-  # opt management
-  ifeq ($(OOPT),1)
-    FFLAGS  = -O5 -g -fbacktrace -funroll-loops -ftree-vectorize -falign-loops=16
-    FFLAGS0 = -O5 -g
-  else
-    FFLAGS  = -Og -g -fbacktrace -fcheck=all -fwhole-file -fcheck=pointer -Wuninitialized -finit-real=nan -finit-integer=nan
-    FFLAGS0 = -Og -g
-  endif
-
-  # integer kind management
-  ifeq ($(INT),8)
-    FFLAGS   += -fdefault-integer-8
-    FFLAGS0  += -fdefault-integer-8
-    CPPSHELL += -Dint8=1
-  endif
-
-  # omp management
-  ifeq ($(OOMP),1)
-    FFLAGS   += -fopenmp
-    FFLAGS0  += -fopenmp
-    CPPSHELL += -Drun_openMP=1
-  endif
-
-
-  # where to store the .mod files
-  FFLAGS +=-J$(MOD_DIR)
-
-  # where to look the .mod files
-  FFLAGS +=  -I$(QDMOD_DIR)
-
-  # integer kind management
-  FFLAGS += -cpp $(CPPSHELL)
-
-
-  FLIB   = $(EXTLib)
-  # OS management
-  ifeq ($(LLAPACK),1)
-    ifeq ($(OS),Darwin)    # OSX
-      # OSX libs (included lapack+blas)
-      FLIB  += -framework Accelerate
-      FLIB0 += -framework Accelerate
-    else                   # Linux
-      # linux libs
-      FLIB  += -llapack -lblas
-      FLIB0 += -llapack -lblas
-    endif
-  endif
-
-  FC_VER = $(shell $(FFC) --version | head -1 )
-
+#=================================================================================
+# To deal with external compilers.mk file
+CompilersDIR = $(MAIN_path)
+ifeq ($(CompilersDIR),)
+  include compilers.mk
+else
+  include $(CompilersDIR)/compilers.mk
 endif
-#=================================================================================
-#=================================================================================
-#=================================================================================
-# ifort compillation v17 v18 with mkl
-#=================================================================================
-ifeq ($(FFC),$(filter $(FFC),ifort ifx))
-
-  # opt management
-  ifeq ($(OOPT),1)
-      FFLAGS =  -O -parallel  -g -traceback -heap-arrays
-  else
-      FFLAGS = -O0 -check all -g -traceback
-  endif
-
-  # integer kind management
-  ifeq ($(INT),8)
-    FFLAGS   += -i8
-    CPPSHELL += -Dint8=1
-  endif
-
-  # omp management
-  ifeq ($(OOMP),1)
-    ifeq ($(FFC),ifort)
-      FFLAGS += -qopenmp -parallel
-      CPPSHELL += -Drun_openMP=1
-    else # ifx
-      FFLAGS += -qopenmp
-    endif
-  endif
-  FFLAGS0 := $(FFLAGS)
-
-  # where to store the modules
-  FFLAGS +=-module $(MOD_DIR)
-
-  # where to look the .mod files
-  FFLAGS += -I$(QDMOD_DIR)
-
-  # integer kind management
-  FFLAGS += -cpp $(CPPSHELL)
-
-
-  FLIB    = $(EXTLib)
-  ifeq ($(LLAPACK),1)
-    ifeq ($(FFC),ifort)
-      FLIB += -mkl -lpthread
-    else # ifx
-      FLIB += -qmkl -lpthread
-    endif
-  else
-    FLIB += -lpthread
-  endif
-
-  FC_VER = $(shell $(FFC) --version | head -1 )
-
-endif
-#===============================================================================
-# nag compillation (nagfor)
-#===============================================================================
-ifeq ($(FFC),nagfor)
-
-  # opt management
-  ifeq ($(OOPT),1)
-      FFLAGS = -O4 -o -compatible -kind=byte -Ounroll=4 -s
-  else
-    ifeq ($(OOMP),0)
-      ifeq ($(LLAPACK),0)
-          FFLAGS = -O0 -g -gline -kind=byte -C -C=alias -C=intovf -C=undefined
-      else
-          FFLAGS = -O0 -g -gline -kind=byte -C -C=alias -C=intovf
-      endif
-    else
-          FFLAGS = -O0 -g        -kind=byte -C -C=alias -C=intovf
-    endif
-  endif
-
-  # integer kind management
-  ifeq ($(INT),8)
-    FFLAGS += -i8
-  endif
-
- # where to store the .mod files
-  FFLAGS +=-mdir $(MOD_DIR)
-
-  # omp management
-  ifeq ($(OOMP),1)
-    FFLAGS += -openmp
-  endif
-
-  # lapack management with cpreprocessing
-  FFLAGS += -fpp -D__LAPACK="$(LLAPACK)"
-
-  # where to look .mod files
-  FFLAGS += -I$(QDMOD_DIR)
-
-  FLIB    = $(QDLIBA)
-
-  # lapact management (default with openmp), with cpreprocessing
-  ifeq ($(LLAPACK),1)
-    ifeq ($(OS),Darwin)    # OSX
-      # OSX libs (included lapack+blas)
-      FLIB += -framework Accelerate
-    else                   # Linux
-      # linux libs
-      FLIB += -llapack -lblas
-    endif
-  endif
-
-  FC_VER = $(shell $(FFC) -V 3>&1 1>&2 2>&3 | head -1 )
-
-endif
-#=================================================================================
-#=================================================================================
-#=================================================================================
+# cpp preprocessing
+FFLAGS +=  -D__COMPILE_DATE="\"$(shell date +"%a %e %b %Y - %H:%M:%S")\"" \
+           -D__COMPILE_HOST="\"$(shell hostname -s)\"" \
+           -D__EVRTPATH="'$(MAIN_path)'"
 #=================================================================================
 #===============================================================================
 #===============================================================================
@@ -283,8 +113,6 @@ $(info ***********COMPILED with:    $(MPICORE))
 endif
 $(info ***********OpenMP:           $(OOMP))
 $(info ***********Lapack:           $(LLAPACK))
-$(info ***********FFLAGS0:          $(FFLAGS0))
-$(info ***********FLIB0:            $(FLIB0))
 $(info ************************************************************************)
 $(info ************************************************************************)
 #==========================================
@@ -311,7 +139,7 @@ ut: Test_nDindex.exe
 	@echo "---------------------------------------"
 #
 Test_nDindex.exe: $(OBJ_DIR)/Test_nDindex.o $(LIBA) $(EXTLib)
-	$(FFC) $(FFLAGS) -o Test_nDindex.exe $(OBJ_DIR)/Test_nDindex.o $(LIBA) $(FLIB)
+	$(FFC) $(FFLAGS) -o Test_nDindex.exe $(OBJ_DIR)/Test_nDindex.o $(LIBA) $(EXTLib) $(FLIB)
 	@echo "  done Library: Test_nDindex.exe"
 #
 $(OBJ_DIR)/Test_nDindex.o: $(LIBA) $(EXTLib)
@@ -365,7 +193,7 @@ $(QDLIBA):
 	@test -d $(ExtLibDIR) || (echo $(ExtLibDIR) "does not exist" ; exit 1)
 	@test -d $(QD_DIR) || (cd $(ExtLibDIR) ; ./get_QDUtilLib.sh $(EXTLIB_TYPE))
 	@test -d $(QD_DIR) || (echo $(QD_DIR) "does not exist" ; exit 1)
-	cd $(QD_DIR) ; make lib FC=$(FFC) OPT=$(OOPT) OMP=$(OOMP) LAPACK=$(LLAPACK) INT=$(INT) ExtLibDIR=$(ExtLibDIR)
+	cd $(QD_DIR) ; make lib FC=$(FFC) OPT=$(OOPT) OMP=$(OOMP) LAPACK=$(LLAPACK) INT=$(INT) ExtLibDIR=$(ExtLibDIR) CompilersDIR=$(CompilersDIR)
 	@echo "  done " $(QDLIBA) " in "$(BaseName)
 ##
 .PHONY: clean_extlib
