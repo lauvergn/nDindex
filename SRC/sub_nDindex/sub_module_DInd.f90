@@ -41,9 +41,6 @@ TYPE TypeDInd
   integer, allocatable :: lmax_TO_nb(:)     ! give the nb value for l (number of terms with l<=lmax)
 
   integer, allocatable :: tab_q(:)          ! size: ndim
-CONTAINS
-  PROCEDURE, PRIVATE, PASS(DInd1) :: TypeDInd2TOTypeDInd1
-  GENERIC,   PUBLIC  :: assignment(=) => TypeDInd2TOTypeDInd1
 END TYPE TypeDInd
 
 PUBLIC :: TypeDInd, alloc_TypeDInd, dealloc_TypeDInd, Write_TypeDInd
@@ -89,27 +86,7 @@ IF (allocated(DInd%tab_q))            deallocate(DInd%tab_q)
 
 
 END SUBROUTINE dealloc_TypeDInd
-ELEMENTAL SUBROUTINE TypeDInd2TOTypeDInd1(DInd1,DInd2)
-IMPLICIT NONE
 
-CLASS(TypeDInd), intent(inout) :: DInd1
-TYPE(TypeDInd),  intent(in)     :: DInd2
-
-integer :: lmax
-
-CALL alloc_TypeDInd(DInd1,DInd2%ndim,DInd2%MaxnD)
-DInd1%tab_ind     = DInd2%tab_ind
-DInd1%i_TO_l      = DInd2%i_TO_l
-DInd1%indD_OF_Dm1 = DInd2%indD_OF_Dm1
-DInd1%tab_q       = DInd2%tab_q
-
-IF (allocated(DInd2%lmax_TO_nb)) THEN
-  lmax = ubound(DInd2%lmax_TO_nb,dim=1)
-  allocate(DInd1%lmax_TO_nb(0:lmax))
-  DInd1%lmax_TO_nb = DInd2%lmax_TO_nb
-END IF
-
-END SUBROUTINE TypeDInd2TOTypeDInd1
 SUBROUTINE Write_TypeDInd(DInd)
 IMPLICIT NONE
 
@@ -138,7 +115,7 @@ IMPLICIT NONE
 
 integer                         :: D,Lmin,Lmax
 TYPE (TypeDInd), allocatable    :: nDind(:)
-TYPE (IntVec_t), pointer     :: tab_i_TO_l(:)
+TYPE (IntVec_t), allocatable    :: tab_i_TO_l(:)
 
 integer :: i,id,iGm1,iG,nG,l,ll,lll,ndimGm1,n
 integer, allocatable :: i_TO_l(:)
@@ -149,10 +126,10 @@ logical, parameter :: debug=.FALSE.
 
 IF (.NOT. allocated(nDind)) allocate(nDind(0:D+1))
 
-IF (.NOT. associated(tab_i_TO_l)) STOP 'ERROR in Set_nDInd_01order: tab_i_TO_l is not associated'
+IF (.NOT. allocated(tab_i_TO_l)) STOP 'ERROR in Set_nDInd_01order: tab_i_TO_l is not allocated'
 
 
-IF (associated(tab_i_TO_l) .AND. debug) THEN
+IF (allocated(tab_i_TO_l) .AND. debug) THEN
   write(out_unit,*) 'Lmin,Lmax',Lmin,Lmax
   write(out_unit,*) 'tab_i_TO_l'
   DO id=1,D
@@ -240,7 +217,7 @@ IMPLICIT NONE
 
 integer                         :: D,Lmin,Lmax
 TYPE (TypeDInd), allocatable    :: nDind(:)
-TYPE (IntVec_t), pointer     :: tab_i_TO_l(:)
+TYPE (IntVec_t), allocatable    :: tab_i_TO_l(:)
 
 integer :: i,id,iGp1,iG,nG,l,ll,lll,ndimGp1,n
 integer, allocatable :: i_TO_l(:)
@@ -251,9 +228,9 @@ logical, parameter :: debug=.FALSE.
 
 IF (.NOT. allocated(nDind)) allocate(nDind(0:D+1))
 
-IF (.NOT. associated(tab_i_TO_l)) STOP 'ERROR in Set_nDInd_10order: tab_i_TO_l is not associated'
+IF (.NOT. allocated(tab_i_TO_l)) STOP 'ERROR in Set_nDInd_10order: tab_i_TO_l is not allocated'
 
-IF (associated(tab_i_TO_l) .AND. debug) THEN
+IF (allocated(tab_i_TO_l) .AND. debug) THEN
   write(out_unit,*) 'tab_i_TO_l'
   DO id=1,D
     CALL Write_IntVec(tab_i_TO_l(id))

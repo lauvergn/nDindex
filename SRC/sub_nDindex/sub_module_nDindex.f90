@@ -82,20 +82,22 @@ MODULE mod_nDindex
         integer                       :: Lmin            = 0
         logical                       :: With_L          = .FALSE. ! IF T, it uses L instead of the Norm
 
-        TYPE (RealVec_t), pointer    :: Tab_nDNorm(:)   => null() ! Tab_nDindex(ndim) (for recursive used)
-        TYPE (IntVec_t),   pointer    :: Tab_i_TO_l(:)   => null() ! equivalent to Tab_nDNorm
+        TYPE (RealVec_t), allocatable :: Tab_nDNorm(:)             ! Tab_nDindex(ndim) (for recursive used)
+        TYPE (IntVec_t),  allocatable :: Tab_i_TO_l(:)             ! equivalent to Tab_nDNorm
 
         TYPE(TypeDInd),  allocatable  :: Tab_DInd(:) ! for SGtype2
-      CONTAINS
-        PROCEDURE, PRIVATE, PASS(nDindex1) :: nDindex2TOnDindex1
-        GENERIC,   PUBLIC  :: assignment(=) => nDindex2TOnDindex1
+      !CONTAINS
+      !  PROCEDURE, PRIVATE, PASS(nDindex1) :: nDindex2TOnDindex1
+      !  GENERIC,   PUBLIC  :: assignment(=) => nDindex2TOnDindex1
       END TYPE Type_nDindex
 
         INTERFACE alloc_array
           MODULE PROCEDURE alloc_array_OF_nDindexdim0,alloc_array_OF_nDindexdim1
+          MODULE PROCEDURE alloc_NParray_OF_nDindexdim0,alloc_NParray_OF_nDindexdim1
         END INTERFACE
         INTERFACE dealloc_array
           MODULE PROCEDURE dealloc_array_OF_nDindexdim0,dealloc_array_OF_nDindexdim1
+          MODULE PROCEDURE dealloc_NParray_OF_nDindexdim0,dealloc_NParray_OF_nDindexdim1
         END INTERFACE
 
         INTERFACE alloc_NParray
@@ -827,9 +829,9 @@ MODULE mod_nDindex
           STOP
         END IF
 
-        IF (.NOT. associated(nDindex%tab_i_TO_l) .AND. nDindex%type_OF_nDindex == 3) THEN
+        IF (.NOT. allocated(nDindex%tab_i_TO_l) .AND. nDindex%type_OF_nDindex == 3) THEN
           write(out_unit,*) ' ERROR in ',name_sub
-          write(out_unit,*) ' The tab_i_TO_l must be associated'
+          write(out_unit,*) ' The tab_i_TO_l must be allocated'
           write(out_unit,*) '   with type_OF_nDindex=3'
           write(out_unit,*) ' CHECK the fortran source!!'
           STOP
@@ -1424,14 +1426,11 @@ END SUBROUTINE init_nDindex_type5p
         END IF
 
 
-        IF (associated(nDindex%Tab_nDNorm)) THEN
-          DO i=1,nDindex%ndim
-            CALL dealloc_RealVec(nDindex%Tab_nDNorm(i))
-          END DO
+        IF (allocated(nDindex%Tab_nDNorm)) THEN
           CALL dealloc_array(nDindex%Tab_nDNorm,"nDindex%Tab_nDNorm","dealloc_nDindex")
         END IF
 
-        IF (associated(nDindex%Tab_i_TO_L)) THEN
+        IF (allocated(nDindex%Tab_i_TO_L)) THEN
           CALL dealloc_array(nDindex%Tab_i_TO_L,"nDindex%Tab_i_TO_L","dealloc_nDindex")
         END IF
 
@@ -1512,7 +1511,6 @@ END SUBROUTINE init_nDindex_type5p
 !      logical,parameter :: debug=.TRUE.
 !----- for debuging --------------------------------------------------
 
-       !IF (.NOT. associated(tab)) RETURN
        IF (.NOT. associated(tab))                                       &
              CALL Write_error_null(name_sub_alloc,name_var,name_sub)
 
@@ -1576,7 +1574,6 @@ END SUBROUTINE init_nDindex_type5p
 !      logical,parameter :: debug=.TRUE.
 !----- for debuging --------------------------------------------------
 
-       !IF (.NOT. associated(tab)) RETURN
        IF (.NOT. associated(tab))                                       &
              CALL Write_error_null(name_sub_alloc,name_var,name_sub)
 
@@ -1612,7 +1609,7 @@ END SUBROUTINE init_nDindex_type5p
        IF (allocated(tab))                                             &
              CALL Write_error_NOT_null(name_sub_alloc,name_var,name_sub)
 
-       memory = 1 ! true pointer
+       memory = 1
        allocate(tab,stat=err_mem)
        CALL error_memo_allo(err_mem,memory,name_var,name_sub,'Type_nDindex')
 
@@ -1974,7 +1971,7 @@ END SUBROUTINE init_nDindex_type5p
         END IF
 
 
-        IF (associated(nDindex2%Tab_nDNorm)) THEN
+        IF (allocated(nDindex2%Tab_nDNorm)) THEN
           CALL alloc_array(nDindex1%Tab_nDNorm,[nDindex1%ndim],       &
                           "nDindex1%Tab_nDNorm","nDindex2TOnDindex1")
           DO i=1,nDindex1%ndim
@@ -1982,7 +1979,7 @@ END SUBROUTINE init_nDindex_type5p
           END DO
         END IF
 
-        IF (associated(nDindex2%Tab_i_TO_L)) THEN
+        IF (allocated(nDindex2%Tab_i_TO_L)) THEN
           CALL alloc_array(nDindex1%Tab_i_TO_L,[nDindex1%ndim],       &
                           "nDindex1%Tab_i_TO_L","nDindex2TOnDindex1")
           DO i=1,nDindex1%ndim
@@ -2054,7 +2051,7 @@ END SUBROUTINE init_nDindex_type5p
           nDindex1%skip_li = nDindex2%skip_li
         END IF
 
-        IF (associated(nDindex2%Tab_nDNorm)) THEN
+        IF (allocated(nDindex2%Tab_nDNorm)) THEN
           CALL alloc_array(nDindex1%Tab_nDNorm,[nDindex1%ndim],       &
                           "nDindex1%Tab_nDNorm","nDindex2TOnDindex1")
           DO i=1,nDindex1%ndim
@@ -2062,7 +2059,7 @@ END SUBROUTINE init_nDindex_type5p
           END DO
         END IF
 
-        IF (associated(nDindex2%Tab_i_TO_L)) THEN
+        IF (allocated(nDindex2%Tab_i_TO_L)) THEN
           CALL alloc_array(nDindex1%Tab_i_TO_L,[nDindex1%ndim],       &
                           "nDindex1%Tab_i_TO_L","nDindex2TOnDindex1")
           DO i=1,nDindex1%ndim
@@ -2538,7 +2535,7 @@ END SUBROUTINE ADD_ONE_TO_nDindex_type5p
 
   integer         :: i,vali
 
-    IF (associated(nDindex%Tab_i_TO_l)) THEN
+    IF (allocated(nDindex%Tab_i_TO_l)) THEN
       L1 = 0
       L2 = 0
       L  = 0
@@ -3160,19 +3157,15 @@ END SUBROUTINE Analysis_nDval_nDindex_type5
         logical                    :: with_Tab_nDNorm
         logical                    :: with_Tab_i_TO_l
 
-
         IF (present(err_sub)) err_sub = 0
 
-        !write(out_unit,*) 'asso Tab_i_TO_l and Tab_nDNorm',                    &
-        !   associated(nDindex%Tab_i_TO_l),associated(nDindex%Tab_nDNorm)
-
-        IF (associated(nDindex%Tab_nDNorm)) THEN
+        IF (allocated(nDindex%Tab_nDNorm)) THEN
           with_Tab_nDNorm = allocated(nDindex%Tab_nDNorm(1)%vec)
         ELSE
           with_Tab_nDNorm = .FALSE.
         END IF
 
-        IF (associated(nDindex%Tab_i_TO_l)) THEN
+        IF (allocated(nDindex%Tab_i_TO_l)) THEN
           with_Tab_i_TO_l = allocated(nDindex%Tab_i_TO_l(1)%vec)
         ELSE
           with_Tab_i_TO_l = .FALSE.
@@ -3244,13 +3237,13 @@ END SUBROUTINE Analysis_nDval_nDindex_type5
 
         IF (present(err_sub)) err_sub = 0
 
-        IF (associated(nDindex%Tab_nDNorm)) THEN
+        IF (allocated(nDindex%Tab_nDNorm)) THEN
           with_Tab_nDNorm = allocated(nDindex%Tab_nDNorm(1)%vec)
         ELSE
           with_Tab_nDNorm = .FALSE.
         END IF
 
-        IF (associated(nDindex%Tab_i_TO_l)) THEN
+        IF (allocated(nDindex%Tab_i_TO_l)) THEN
           with_Tab_i_TO_l = allocated(nDindex%Tab_i_TO_l(1)%vec)
         ELSE
           with_Tab_i_TO_l = .FALSE.
@@ -3535,7 +3528,7 @@ END SUBROUTINE Analysis_nDval_nDindex_type5
         END IF
 
         write(out_unit,*) trim(name_info_loc),'Tab_i_TO_l'
-        IF (associated(nDindex%Tab_i_TO_l)) THEN
+        IF (allocated(nDindex%Tab_i_TO_l)) THEN
           DO i=1,nDindex%ndim
              CALL Write_IntVec(nDindex%Tab_i_TO_l(i))
           END DO
@@ -3578,7 +3571,7 @@ END SUBROUTINE Analysis_nDval_nDindex_type5
           END DO
         END IF
 
-        IF (associated(nDindex%Tab_nDNorm)) THEN
+        IF (allocated(nDindex%Tab_nDNorm)) THEN
           write(out_unit,*) trim(name_info_loc),'Tab_nDNorm:'
           DO i=1,nDindex%ndim
             write(out_unit,*) trim(name_info_loc),'Tab_nDNorm(i):',i,  &

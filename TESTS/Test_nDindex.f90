@@ -32,6 +32,8 @@ PROGRAM Test_nDindex
   IMPLICIT NONE
 
   TYPE (Type_nDindex) :: nDSG4
+  TYPE (Type_nDindex) :: nDSG4_testCopy
+
   integer :: i
   integer :: ndim,Lmin,Lmax,max_coupling
   integer, allocatable :: nDsize(:),nDend(:),nDinit(:)
@@ -54,6 +56,11 @@ PROGRAM Test_nDindex
    allocate(WeightSG(nDSG4%Max_nDI))
 
    CALL calc_Weight_OF_SRep(WeightSG,nDSG4)
+
+   nDSG4_testCopy = nDSG4
+
+   CALL dealloc_nDindex(nDSG4_testCopy)
+   CALL dealloc_nDindex(nDSG4)
 
 END PROGRAM Test_nDindex
 RECURSIVE SUBROUTINE calc_Weight_OF_SRep(WeightSG,nDind_SmolyakRep)
