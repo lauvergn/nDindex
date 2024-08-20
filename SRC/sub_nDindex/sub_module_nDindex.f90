@@ -86,9 +86,6 @@ MODULE mod_nDindex
         TYPE (IntVec_t),  allocatable :: Tab_i_TO_l(:)             ! equivalent to Tab_nDNorm
 
         TYPE(TypeDInd),  allocatable  :: Tab_DInd(:) ! for SGtype2
-      !CONTAINS
-      !  PROCEDURE, PRIVATE, PASS(nDindex1) :: nDindex2TOnDindex1
-      !  GENERIC,   PUBLIC  :: assignment(=) => nDindex2TOnDindex1
       END TYPE Type_nDindex
 
         INTERFACE alloc_array
@@ -108,7 +105,6 @@ MODULE mod_nDindex
         END INTERFACE
 
         PUBLIC :: Type_nDindex,alloc_nDindex,dealloc_nDindex,Write_nDindex
-        PUBLIC :: nDindex2TOnDindex1,nDindex2TOnDindex1_InitOnly
 
         PUBLIC :: alloc_array,dealloc_array,alloc_NParray,dealloc_NParray
         PUBLIC :: init_nDindexPrim,init_nDindex_typeTAB
@@ -1885,7 +1881,7 @@ END SUBROUTINE init_nDindex_type5p
       END SUBROUTINE sort_nDindex
 
 !     =================================================================
-!     nDindex2 TO nDindex1
+!     nDindex2 TO nDindex1 (not used)
 !     =================================================================
       !!@description: TODO
       !!@param: TODO
@@ -1992,7 +1988,7 @@ END SUBROUTINE init_nDindex_type5p
         !CALL Write_nDindex(nDindex1)
 
       END SUBROUTINE nDindex2TOnDindex1
-      SUBROUTINE nDindex2TOnDindex1_InitOnly(nDindex1,nDindex2)
+      SUBROUTINE nDindex2TOnDindex1_InitOnly(nDindex1,nDindex2) !  (not used)
         TYPE (Type_nDindex), intent(inout) :: nDindex1
         TYPE (Type_nDindex), intent(in)    :: nDindex2
 
