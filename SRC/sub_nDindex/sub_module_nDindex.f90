@@ -90,11 +90,9 @@ MODULE mod_nDindex
 
         INTERFACE alloc_array
           MODULE PROCEDURE alloc_array_OF_nDindexdim0,alloc_array_OF_nDindexdim1
-          MODULE PROCEDURE alloc_NParray_OF_nDindexdim0,alloc_NParray_OF_nDindexdim1
         END INTERFACE
         INTERFACE dealloc_array
           MODULE PROCEDURE dealloc_array_OF_nDindexdim0,dealloc_array_OF_nDindexdim1
-          MODULE PROCEDURE dealloc_NParray_OF_nDindexdim0,dealloc_NParray_OF_nDindexdim1
         END INTERFACE
 
         INTERFACE alloc_NParray
@@ -1472,8 +1470,7 @@ END SUBROUTINE init_nDindex_type5p
       IMPLICIT NONE
 
       TYPE (Type_nDindex), pointer, intent(inout) :: tab
-
-      character (len=*), intent(in) :: name_var,name_sub
+      character (len=*),            intent(in) :: name_var,name_sub
 
       integer, parameter :: ndim=0
       logical :: memory_test
@@ -1498,7 +1495,7 @@ END SUBROUTINE init_nDindex_type5p
       IMPLICIT NONE
 
       TYPE (Type_nDindex), pointer, intent(inout) :: tab
-      character (len=*), intent(in) :: name_var,name_sub
+      character (len=*),            intent(in)    :: name_var,name_sub
 
 !----- for debuging --------------------------------------------------
       character (len=*), parameter :: name_sub_alloc = 'dealloc_array_OF_nDindexdim0'

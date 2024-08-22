@@ -33,6 +33,8 @@ PROGRAM Test_nDindex
 
   TYPE (Type_nDindex) :: nDSG4
   TYPE (Type_nDindex) :: nDSG4_testCopy
+  TYPE (Type_nDindex), allocatable :: nDi_allo
+  TYPE (Type_nDindex), pointer     :: nDi_pointer
 
   integer :: i
   integer :: ndim,Lmin,Lmax,max_coupling
@@ -61,6 +63,22 @@ PROGRAM Test_nDindex
 
    CALL dealloc_nDindex(nDSG4_testCopy)
    CALL dealloc_nDindex(nDSG4)
+
+
+  write(*,*) "============================================"
+  allocate(nDi_allo)
+  CALL init_nDindexPrim(nDi_allo,type_OF_nDindex=-5,ndim=ndim,             &
+                        nDinit=nDinit,nDend=nDend,     &
+                        Lmin=Lmin,Lmax=Lmax,MaxCoupling=max_coupling)
+  CALL dealloc_NParray(nDi_allo,'nDi_allo','Test_nDindex')
+
+
+  write(*,*) "============================================"
+  allocate(nDi_pointer)
+  CALL init_nDindexPrim(nDi_pointer,type_OF_nDindex=-5,ndim=ndim,             &
+                        nDinit=nDinit,nDend=nDend,     &
+                        Lmin=Lmin,Lmax=Lmax,MaxCoupling=max_coupling)
+  CALL dealloc_array(nDi_pointer,'nDi_pointer','Test_nDindex')
 
 END PROGRAM Test_nDindex
 RECURSIVE SUBROUTINE calc_Weight_OF_SRep(WeightSG,nDind_SmolyakRep)
