@@ -1,1 +1,5 @@
-QDUtil*
+.DS_Store
+*/*.a
+*/obj/*
+*/OBJ/*
+/QDUtilLib

@@ -56,13 +56,12 @@ OS :=$(shell uname)
 MAIN_path:= $(shell pwd)
 
 # Extension for the object directory and the library
+ext_obj=_$(FFC)_opt$(OOPT)_omp$(OOMP)_lapack$(LLAPACK)_int$(INT)
 ifeq ($(FFC),mpifort)
   extlibwi_obj:=_$(FFC)_$(MPICORE)_opt$(OOPT)_omp$(OOMP)_lapack$(LLAPACK)_int$(INT)
 else
-  extlibwi_obj:=_$(FFC)_opt$(OOPT)_omp$(OOMP)_lapack$(LLAPACK)_int$(INT)
+  extlibwi_obj:= $(ext_obj)
 endif
-extlib_obj:=_$(FFC)_opt$(OOPT)_omp$(OOMP)_lapack$(LLAPACK)_int$(INT)
-
 
 
 OBJ_DIR = obj/obj$(extlibwi_obj)
@@ -79,10 +78,11 @@ LIBA=libnDindex$(extlibwi_obj).a
 ifeq ($(ExtLibDIR),)
   ExtLibDIR := $(MAIN_path)/Ext_Lib
 endif
+$(shell [ -d $(ExtLibDIR) ] || (echo $(ExtLibDIR) "does not exist" ; exit 1))
 
 QD_DIR    = $(ExtLibDIR)/QDUtilLib
-QDMOD_DIR = $(QD_DIR)/OBJ/obj$(extlib_obj)
-QDLIBA    = $(QD_DIR)/libQD$(extlib_obj).a
+QDMOD_DIR = $(QD_DIR)/OBJ/obj$(ext_obj)
+QDLIBA    = $(QD_DIR)/libQD$(ext_obj).a
 
 EXTLib     = $(QDLIBA)
 EXTMod     = -I$(QDMOD_DIR)
@@ -97,7 +97,7 @@ else
   include $(CompilersDIR)/compilers.mk
 endif
 # cpp preprocessing
-FFLAGS +=  -D__COMPILE_DATE="\"$(shell date +"%a %e %b %Y - %H:%M:%S")\"" \
+#FFLAGS +=  -D__COMPILE_DATE="\"$(shell date +"%a %e %b %Y - %H:%M:%S")\"" \
            -D__COMPILE_HOST="\"$(shell hostname -s)\"" \
            -D__EVRTPATH="'$(MAIN_path)'"
 #=================================================================================
@@ -189,12 +189,14 @@ zip: cleanall
 # QDUtil
 #===============================================
 #
-$(QDLIBA):
-	@test -d $(ExtLibDIR) || (echo $(ExtLibDIR) "does not exist" ; exit 1)
-	@test -d $(QD_DIR) || (cd $(ExtLibDIR) ; ./get_QDUtilLib.sh $(EXTLIB_TYPE))
-	@test -d $(QD_DIR) || (echo $(QD_DIR) "does not exist" ; exit 1)
-	cd $(QD_DIR) ; make lib FC=$(FFC) OPT=$(OOPT) OMP=$(OOMP) LAPACK=$(LLAPACK) INT=$(INT) ExtLibDIR=$(ExtLibDIR) CompilersDIR=$(CompilersDIR)
-	@echo "  done " $(QDLIBA) " in "$(BaseName)
+.PHONY: getlib
+getlib:
+	cd $(ExtLibDIR) ; ./get_Lib.sh QDUtilLib dev
+#
+$(QDLIBA): getlib
+	cd $(ExtLibDIR)/QDUtilLib ; make lib FC=$(FFC) OPT=$(OOPT) OMP=$(OOMP) LAPACK=$(LLAPACK) INT=$(INT) ExtLibDIR=$(ExtLibDIR) CompilersDIR=$(CompilersDIR)
+	@test -f $(QDLIBA) || (echo $(QDLIBA) "does not exist" ; exit 1)
+	@echo "  done " $(QDLIBA)
 ##
 .PHONY: clean_extlib
 clean_extlib:
