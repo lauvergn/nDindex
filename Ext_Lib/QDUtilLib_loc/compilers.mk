@@ -98,7 +98,7 @@ ifeq ($(FFC),$(filter $(FFC),ifort ifx))
 
   # opt management + add/remove some flag to ifort/ifx (mainly to avoid bugs with ifx)
   ifeq ($(OOPT),1)
-    FFLAGS = -O  -g -traceback
+    FFLAGS = -O  -g -traceback 
     CFLAGS = -O  -g -traceback
     ifeq ($(FFC),ifort)
       FFLAGS += -heap-arrays
@@ -112,7 +112,7 @@ ifeq ($(FFC),$(filter $(FFC),ifort ifx))
       FFLAGS += -check all,nouninit
     endif
   endif
-
+  
   # integer kind management
   ifeq ($(INT),8)
     FFLAGS += -i8
