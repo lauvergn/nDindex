@@ -185,6 +185,12 @@ zip: cleanall
 	cd $(ExtLibSAVEDIR) ; ./cp_nDindex.sh
 	@echo "  done zip"
 #===============================================
+#=== Add links to directories for fpm ==========
+#===============================================
+#
+.PHONY: fpmlink
+fpmlink: getlib
+#===============================================
 #=== external libraries ========================
 # QDUtil
 #===============================================
