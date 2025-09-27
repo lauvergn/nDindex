@@ -1,11 +1,15 @@
 #!/bin/bash
-lib=QDUtillib
-libShort=QD
-app=`ls APP/*.f90`
-base_app=$(basename "$app" .f90)
+lib=nDindex
+libShort=nDindex
+#app=`ls APP/*.f90`
+#base_app=$(basename "$app" .f90)
 
 test=`ls TESTS/*.f90`
 base_test=$(basename "$test" .f90)
+
+#* doc :
+#  Make the Ford documantation.
+#  From the library directory, the documentation location is: doc/ford_site/index.html
 
 echo "
 1) The "$lib" makfile has the following targets:
@@ -14,20 +18,12 @@ echo "
   The help usage of the makefile.
   Execute the the bash script: scripts/makefile_usage.sh (the present script)
 
-* doc :
-  Make the Ford documantation.
-  From the library directory, the documentation location is: doc/ford_site/index.html
-
 * lib :
   Create the library (lib*.a) for a given set of options
 
 * ut : 
   Run some tests and analyses the number of errors
   The test executable is: "$base_test.x"
-
-* app :
-  Compilation of main fortran file: "$app"
-  The executable is: "$base_app.x"
 
 * clean :
   Remove the object files (with defined options), the executables, some log files (without the ones in the TESTS directory)
@@ -37,7 +33,8 @@ echo "
   Then perform a cleanall for external libraries (if any)
 
 * cleanlocextlib :
-  Perform a cleanall and then remove the external library directories (if any)
+  Perform a cleanall and then remove the external library directories. 
+  Be carrefull, any modifications of the external libraries will be lost!
 
 * dep :
   Create the Fortran file list (of the SRC directory) and the makefile dependencies.
@@ -47,7 +44,7 @@ echo "
   Therefore, it creates the library, the main and test executables.
 
 
-2) The compiler options are (the first values is the default):
+2) The make and compiler options are (the first values is the default):
 
 - FC=gfortran or ifx or ifort ...
 - OPT=1 or 0: compilation with optimization or without optimization
@@ -56,6 +53,10 @@ echo "
 - INT=4 or 8: change the integer kind default compilation option
 - RKIND=real64 or real32 or real128: change the real kind
 - WITHRK16=1 or 0: enables to turn on (off) the quadruple precision (real128). There is no default, hence the value is defined automatically
+
+- ExtLibDIR=./Ext_Lib: the variable enables to change the directory of the external libraries. The default is in Ext_Lib. 
+Remark, make cleanall or make cleanlocextlib will clean this directory.
+- BRANCH=main or dev: it enables to select the git branch of the external library to be download from github.
 
 3) Examples:
 
@@ -66,7 +67,6 @@ make lib
 make FC=gfortran OPT=1 OMP=0 RKIND=real128
   It is equivalent to: make all FC=gfortran OPT=1 OMP=0 RKIND=real128
 
-  It creates a library with the folowing name: lib"$libshort"_gfortran_opt1_omp0_lapack1_int4_real128.a
   The object and mod files are in OBJ/obj_gfortran_opt1_omp0_lapack1_int4_real128
   Run the tests
 " | more
